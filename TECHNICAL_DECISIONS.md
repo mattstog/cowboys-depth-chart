@@ -405,3 +405,459 @@ Key strengths:
 - ✅ Modern tech stack with active community support
 
 The application is production-ready with the recommended enhancements for security, testing, and persistent storage.
+ ES modules support
+- Better than Create React App for modern development
+
+**Alternative Considered**: Next.js
+- Rejected: No need for SSR for this use case
+- Simple SPA is more appropriate for internal tooling
+
+#### Backend: ASP.NET Core 10.0
+
+**Why .NET?**
+- High performance and scalability
+- Strong typing with C#
+- Excellent tooling (Visual Studio, Rider)
+- Entity Framework Core for database operations
+- Native async/await support
+- Cross-platform deployment
+
+**Why Minimal APIs?**
+- Simpler than MVC for REST APIs
+- Less boilerplate code
+- Better performance
+- Easier to understand and maintain
+
+**Alternative Considered**: Node.js/Express
+- Rejected: .NET offers better type safety and performance
+- Cowboys IT infrastructure may already use .NET
+
+#### Drag & Drop: @dnd-kit
+
+**Decision**: Use @dnd-kit over react-dnd or react-beautiful-dnd
+
+**Rationale**:
+- **Accessibility**: Built-in keyboard navigation and screen reader support
+- **Performance**: Uses modern browser APIs, no wrappers
+- **Bundle Size**: Smaller than alternatives (~30KB vs 100KB+)
+- **Active Maintenance**: Regular updates and bug fixes
+- **Flexibility**: Supports both sortable lists and free-form dragging
+
+**Comparison**:
+| Feature | @dnd-kit | react-beautiful-dnd | react-dnd |
+|---------|----------|---------------------|-----------|
+| Bundle Size | 30KB | 100KB+ | 150KB+ |
+| Accessibility | ✅ Built-in | ✅ Built-in | ❌ Manual |
+| Performance | ✅ Excellent | ⚠️ Good | ⚠️ Good |
+| Maintenance | ✅ Active | ❌ Archived | ⚠️ Slow |
+| TypeScript | ✅ Native | ✅ Yes | ⚠️ @types |
+
+#### Styling: Tailwind CSS
+
+**Decision**: Tailwind CSS over styled-components or CSS modules
+
+**Rationale**:
+- Utility-first approach reduces CSS bloat
+- No context switching between CSS and JSX
+- Consistent spacing and color scales
+- Easy to customize (Cowboys color palette)
+- Excellent responsive design utilities
+- PurgeCSS removes unused styles automatically
+
+**Cowboys Branding Integration**:
+```javascript
+colors: {
+  'cowboys-navy': '#041E42',
+  'cowboys-blue': '#0D2648',
+  'cowboys-silver': '#869397',
+}
+```
+
+#### Database: Entity Framework Core + In-Memory
+
+**Decision**: In-memory database for demo/interview purposes
+
+**Rationale**:
+- No infrastructure setup required
+- Fast development and testing
+- Easy to seed with sample data
+- Perfect for technical demonstrations
+
+**Production Recommendation**:
+- PostgreSQL or SQL Server
+- Add migrations for schema versioning
+- Implement proper connection pooling
+- Add caching layer (Redis)
+
+### State Management
+
+**Decision**: Custom React hook (useDepthChart) instead of Redux/Zustand
+
+**Rationale**:
+- Application state is simple (list of players)
+- No complex state interactions
+- Reduces bundle size and complexity
+- Built-in React hooks (useState, useEffect) are sufficient
+- Optimistic updates easy to implement
+
+**When Redux Would Be Better**:
+- Multiple related entities (teams, games, stats)
+- Complex state transformations
+- Time-travel debugging needed
+- Large team requiring standardized patterns
+
+### API Design
+
+#### RESTful Endpoints
+
+**Decision**: REST over GraphQL
+
+**Rationale**:
+- Simpler for this use case
+- Easy to cache with HTTP semantics
+- Standard HTTP methods are intuitive
+- No query complexity to manage
+
+**Endpoints**:
+```
+GET    /players           # List all players
+GET    /players/{id}      # Get single player
+PUT    /players/{id}      # Update player
+POST   /players/reorder   # Bulk update orders
+POST   /players/swap      # Swap two players
+```
+
+**Design Principles**:
+- Resource-based URLs
+- Proper HTTP verbs
+- Idempotent operations where possible
+- Consistent error responses
+
+#### Bulk Operations
+
+**Decision**: Add `/reorder` and `/swap` endpoints
+
+**Rationale**:
+- Reduces API calls (one instead of N)
+- Atomic operations prevent race conditions
+- Better UX with faster updates
+- Reduced network latency
+
+**Example**: Moving a player from position 1→3 requires updating 3 players:
+- Without bulk: 3 separate API calls
+- With bulk: 1 API call with array of updates
+
+### Dual View System
+
+**Decision**: Implement both List View and Formation View
+
+**List View** (Traditional):
+- Full position names for clarity
+- Drag-and-drop reordering
+- Familiar to coaching staff
+- Best for detailed roster management
+
+**Formation View** (Visual):
+- Coaching staff can visualize game scenarios
+- Easier to spot depth issues
+- Better for game planning discussions
+- More engaging for presentations
+
+**Implementation**:
+- Tab navigation for easy switching
+- Shared state between views
+- Consistent player data and interactions
+- SVG-based positioning for precise layout
+
+### Position Mapping System
+
+**Decision**: Create abstraction layer for position codes
+
+**Problem**: Database uses X/Z for WR, OC for Center, but displays need "Wide Receiver", "Center"
+
+**Solution**: Three-layer system
+1. **Database codes**: X, Z, OC, 1-TECH, 3-TECH
+2. **Display codes (Formation)**: WR, C, LDT, RDT
+3. **Full names (List)**: Wide Receiver, Center, Left Defensive Tackle
+
+**Benefits**:
+- Flexibility to change display without database changes
+- ESPN-style display names for familiarity
+- Easy to add new position types
+```typescript
+// positions.ts
+export const POSITION_DISPLAY_NAMES: Record<string, string> = {
+  'X': 'WR',
+  'Z': 'WR',
+  'OC': 'C',
+  // ...
+};
+
+export const FULL_POSITION_NAMES: Record<string, string> = {
+  'X': 'Wide Receiver (X)',
+  'OC': 'Center',
+  // ...
+};
+```
+
+### Formation Layout Algorithm
+
+**Decision**: Manual positioning with coordinate system
+
+**Rationale**:
+- SVG viewBox provides precise control
+- Can customize spacing for readability
+- Easy to adjust positions visually
+- No complex auto-layout logic needed
+
+**Coordinate System**:
+- ViewBox: 1200×1000 pixels
+- Defense zone: y: 0-460 (grey)
+- Offense zone: y: 460-870 (blue)
+- Special teams: y: 870-1000 (darker blue)
+
+**Design Priorities**:
+1. Readability over perfect formations
+2. No overlapping players or labels
+3. Adequate spacing for click targets
+4. Responsive to different screen sizes
+
+### Optimistic Updates
+
+**Decision**: Update UI immediately, sync with backend
+
+**Flow**:
+1. User drags player
+2. UI updates instantly (optimistic)
+3. API call made in background
+4. On error, revert UI and show message
+
+**Benefits**:
+- Feels instant to users
+- No loading spinners for every action
+- Better UX on slower connections
+
+**Implementation**:
+```typescript
+// Local update
+setPlayers(updatedPlayers);
+
+// Background sync
+try {
+  await movePlayer(id, position, order);
+} catch (err) {
+  // Revert on error
+  setPlayers(originalPlayers);
+  showError();
+}
+```
+
+### Cowboys Branding
+
+**Decision**: Match NFL.com and official Cowboys design
+
+**Elements Implemented**:
+- Impact font for headers and emphasis
+- Navy (#041E42) primary color
+- Silver (#869397) accents
+- Gradient header (inspired by NFL.com)
+- Watermark logo in header
+- Silver borders on offensive players (Formation View)
+
+**Font Strategy**:
+- Impact for branding elements (headers, tabs, player names)
+- System fonts for body text (performance, readability)
+- Bebas Neue as fallback for Impact
+
+### Deployment Strategy
+
+**Frontend: Vercel**
+
+**Why Vercel?**
+- Free tier for demos/interviews
+- Automatic deployments from GitHub
+- Global CDN for fast loading
+- Easy environment variable management
+- Great developer experience
+
+**Backend: Railway**
+
+**Why Railway?**
+- Supports .NET/Dockerfile deployments
+- Free tier for small projects
+- Automatic HTTPS
+- Easy environment variable management
+- GitHub integration
+
+**Alternative Considered**: Azure
+- More expensive for demo purposes
+- Overkill for simple depth chart API
+- Railway sufficient for technical demonstration
+
+**Production Recommendations**:
+- Azure App Service (if Cowboys uses Azure)
+- Kubernetes for containerized scaling
+- Azure SQL or RDS for database
+- Redis for caching
+- Application Insights for monitoring
+
+### Error Handling
+
+**Strategy**: User-friendly messages with retry capability
+
+**Frontend**:
+- Graceful degradation if API is down
+- Clear error messages
+- Retry buttons for failed operations
+- Loading states for async operations
+
+**Backend**:
+- Proper HTTP status codes
+- Consistent error response format
+- Logging for debugging
+- Validation before database operations
+
+### Security Considerations
+
+**Current Implementation** (Demo):
+- CORS allows all origins
+- No authentication required
+- In-memory database (no persistence)
+
+**Production Requirements**:
+- Azure AD or OAuth2 authentication
+- Role-based access control (coaches vs. admins)
+- CORS restricted to Cowboys domain
+- API rate limiting
+- Input validation and sanitization
+- SQL injection prevention (parameterized queries)
+- HTTPS only
+
+### Performance Optimizations
+
+**Frontend**:
+- React.memo for expensive components
+- Lazy loading for large lists (not needed yet)
+- Debounced search/filter (for future)
+- Minimal re-renders with proper key props
+- Code splitting (Vite handles automatically)
+
+**Backend**:
+- In-memory database (fast reads)
+- Async/await throughout
+- No N+1 query problems
+- Minimal serialization overhead
+
+**Future Optimizations**:
+- Add Redis caching
+- Implement pagination for large rosters
+- WebSocket for real-time updates
+- Service worker for offline support
+
+## Scalability Considerations
+
+### Horizontal Scaling
+
+**Frontend**:
+- Stateless React app
+- Served from CDN
+- Scales automatically with Vercel
+
+**Backend**:
+- Stateless API (no session storage)
+- Can add multiple instances behind load balancer
+- In-memory DB would need to be replaced with shared database
+
+### Database Scaling
+
+**Current**: Single in-memory instance
+
+**Production Path**:
+1. Move to PostgreSQL/SQL Server
+2. Add read replicas for queries
+3. Implement caching (Redis)
+4. Consider CQRS pattern for complex operations
+
+### Monitoring & Observability
+
+**Recommended Tools**:
+- Application Insights (Azure)
+- Sentry for error tracking
+- LogRocket for session replay
+- Prometheus + Grafana for metrics
+
+## Future Enhancements
+
+### Phase 1: Core Features
+- ✅ Drag-and-drop depth chart
+- ✅ List View with full position names
+- ✅ Formation View with visual layout
+- ✅ Cowboys branding
+- ✅ Deployed to production
+
+### Phase 2: Enhanced Functionality
+- [ ] User authentication (Azure AD)
+- [ ] Role-based permissions
+- [ ] Persistent database
+- [ ] Injury report integration
+- [ ] Player photos
+- [ ] Export to PDF
+
+### Phase 3: Advanced Features
+- [ ] Historical depth charts (version control)
+- [ ] Compare depth charts (week to week)
+- [ ] Player statistics integration
+- [ ] Game day roster management
+- [ ] Mobile app (React Native)
+- [ ] Real-time collaboration (WebSocket)
+
+## Testing Strategy
+
+**Current**: Manual testing during development
+
+**Production Requirements**:
+- Unit tests (Jest, xUnit)
+- Integration tests (API endpoints)
+- E2E tests (Playwright, Cypress)
+- Accessibility testing (axe-core)
+- Load testing (k6, Artillery)
+- CI/CD pipeline with automated tests
+
+## Lessons Learned
+
+### What Went Well
+- @dnd-kit was excellent choice for drag-and-drop
+- Tailwind CSS sped up styling significantly
+- TypeScript caught many bugs during development
+- Vercel/Railway made deployment trivial
+- Custom React hook kept state management simple
+
+### What Could Be Improved
+- Started with Swagger, but removed for simplicity
+- Formation positioning took many iterations to get right
+- Could have used CSS Grid instead of SVG coordinates
+- API could benefit from OpenAPI documentation
+
+### Technical Debt
+- No automated tests
+- No logging/monitoring
+- Environment variables could be better managed
+- API error responses could be more detailed
+- Should add API versioning for future changes
+
+## Conclusion
+
+This project demonstrates modern full-stack development practices with a focus on user experience, maintainability, and scalability. The dual-view system (List + Formation) provides both traditional and visual approaches to depth chart management, catering to different use cases within the organization.
+
+The technology choices prioritize:
+1. **Developer Experience**: TypeScript, Vite, hot reload
+2. **User Experience**: Optimistic updates, smooth animations
+3. **Maintainability**: Clear separation of concerns, type safety
+4. **Performance**: Efficient rendering, minimal bundle size
+5. **Scalability**: Stateless design, cloud-native deployment
+
+---
+
+**Author**: Matthew Stogner  
+**Date**: December 2024  
+**Purpose**: Technical interview for Dallas Cowboys Football Operations
