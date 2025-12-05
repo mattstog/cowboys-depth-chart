@@ -3,7 +3,7 @@ import { Player } from '../types/player';
 
 // Use Vite env variable instead of hard-coded localhost
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:5210';
+  import.meta.env.VITE_API_URL || 'http://localhost:5210';
 
 export const useDepthChart = () => {
   const [players, setPlayers] = useState<Player[]>([]);
