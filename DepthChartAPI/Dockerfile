@@ -1,20 +1,22 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app
 
-# Copy csproj and restore dependencies
-COPY *.csproj ./
-RUN dotnet restore
-
-# Copy everything else and build
+# Copy everything first
 COPY . ./
-RUN dotnet publish -c Release -o out
+
+# Restore dependencies
+RUN dotnet restore DepthChartAPI.csproj
+
+# Build and publish
+RUN dotnet publish DepthChartAPI.csproj -c Release -o out
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/out .
 
-# Railway uses PORT environment variable
-ENV ASPNETCORE_URLS=http://+:$PORT
+# Expose port (Railway sets PORT env variable)
+EXPOSE 5210
+ENV ASPNETCORE_URLS=http://+:${PORT:-5210}
 
 ENTRYPOINT ["dotnet", "DepthChartAPI.dll"]
