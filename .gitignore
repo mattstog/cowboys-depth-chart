@@ -21,3 +21,8 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Personal interview notes (keep locally)
+INTERVIEW_NOTES.md
+QUICK_START.md
+DEPLOYMENT.md
