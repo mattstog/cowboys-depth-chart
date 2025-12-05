@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app
 
-# Copy everything first
+# Copy everything
 COPY . ./
 
 # Restore dependencies
@@ -14,6 +14,9 @@ RUN dotnet publish DepthChartAPI.csproj -c Release -o out
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/out .
+
+# Copy players.json to the output directory
+COPY players.json ./
 
 # Expose port (Railway sets PORT env variable)
 EXPOSE 5210

@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using DepthChartAPI.Data;
+using DepthChartAPI.Models;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +11,6 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 // Add services
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 // Use in-memory database
 builder.Services.AddDbContext<DepthChartDbContext>(options =>
@@ -33,11 +33,24 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
-    SeedData.Initialize(context);
-}
+    
+    // Read and seed data from players.json
+    var jsonPath = Path.Combine(AppContext.BaseDirectory, "players.json");
+    if (File.Exists(jsonPath))
+    {
+        var jsonData = File.ReadAllText(jsonPath);
+        var players = JsonSerializer.Deserialize<List<Player>>(jsonData, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
 
-app.UseSwagger();
-app.UseSwaggerUI();
+        if (players != null)
+        {
+            context.Players.AddRange(players);
+            context.SaveChanges();
+        }
+    }
+}
 
 app.UseCors();
 app.UseAuthorization();
