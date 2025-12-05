@@ -9,17 +9,22 @@ export const POSITION_GROUPS: PositionGroup[] = [
   },
   {
     name: 'Running Backs',
-    positions: ['RB', 'FB'],
+    positions: ['RB'],
     phase: 'offense',
   },
   {
     name: 'Wide Receivers',
-    positions: ['X', 'Z'],
+    positions: ['Z', 'X'],
     phase: 'offense',
   },
   {
     name: 'Tight Ends',
     positions: ['TE'],
+    phase: 'offense',
+  },
+  {
+    name: 'Fullbacks',
+    positions: ['FB'],
     phase: 'offense',
   },
   {
