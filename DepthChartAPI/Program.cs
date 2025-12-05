@@ -5,8 +5,10 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Get port from environment variable (Railway sets this)
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5210";
+// Railway provides PORT environment variable
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+Console.WriteLine($"Starting server on port: {port}");
+
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 // Add services
@@ -16,14 +18,14 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<DepthChartDbContext>(options =>
     options.UseInMemoryDatabase("DepthChart"));
 
-// Add CORS
+// Add CORS - allow all origins
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
+    options.AddDefaultPolicy(policy =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
@@ -36,6 +38,8 @@ using (var scope = app.Services.CreateScope())
     
     // Read and seed data from players.json
     var jsonPath = Path.Combine(AppContext.BaseDirectory, "players.json");
+    Console.WriteLine($"Looking for players.json at: {jsonPath}");
+    
     if (File.Exists(jsonPath))
     {
         var jsonData = File.ReadAllText(jsonPath);
@@ -46,9 +50,14 @@ using (var scope = app.Services.CreateScope())
 
         if (players != null)
         {
+            Console.WriteLine($"Seeding {players.Count} players");
             context.Players.AddRange(players);
             context.SaveChanges();
         }
+    }
+    else
+    {
+        Console.WriteLine("players.json not found!");
     }
 }
 
@@ -56,4 +65,5 @@ app.UseCors();
 app.UseAuthorization();
 app.MapControllers();
 
+Console.WriteLine("Application started successfully");
 app.Run();
