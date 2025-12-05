@@ -10,7 +10,6 @@ A modern, interactive depth chart application for the Dallas Cowboys with drag-a
 
 #### List View
 - Traditional depth chart organized by position groups
-- Full position names (e.g., "Quarterback", "Left Tackle", "Middle Linebacker")
 - Drag-and-drop to reorder players within positions
 - Move players between positions
 - Status indicators (Active, Practice Squad, Injured Reserve)
@@ -209,22 +208,12 @@ See [TECHNICAL_DECISIONS.md](TECHNICAL_DECISIONS.md) for detailed technical rati
 - Player statistics integration
 - Multi-team support
 
-## Screenshots
-
-### List View
-Traditional depth chart with full position names and drag-and-drop functionality.
-
-### Formation View
-Visual representation of players in their football formations with click-to-swap depth.
-
-### Mobile Responsive
-Fully responsive design works on tablets and mobile devices.
 
 ## Author
 
 **Matthew Stogner**
 
-Technical Interview Project for Dallas Cowboys Football Operations - December 2024
+Technical Interview Project for Dallas Cowboys Football Operations - December 2025
 
 ## License
 
@@ -233,5 +222,3 @@ This project is for demonstration purposes as part of a technical interview proc
 ## Acknowledgments
 
 - Dallas Cowboys organization for the interview opportunity
-- NFL.com for design inspiration
-- Cowboys colors and branding guidelines
