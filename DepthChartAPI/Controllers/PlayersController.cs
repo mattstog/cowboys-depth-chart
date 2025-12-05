@@ -22,8 +22,9 @@ public class PlayersController : ControllerBase
         return await _context.Players.ToListAsync();
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Player>> GetPlayer(string id)
+    // GET /players/{id}
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<Player>> GetPlayer(Guid id)
     {
         var player = await _context.Players.FindAsync(id);
 
@@ -35,12 +36,13 @@ public class PlayersController : ControllerBase
         return player;
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdatePlayer(string id, Player player)
+    // PUT /players/{id}
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdatePlayer(Guid id, Player player)
     {
         if (id != player.Id)
         {
-            return BadRequest();
+            return BadRequest("Route id does not match player id.");
         }
 
         _context.Entry(player).State = EntityState.Modified;
@@ -64,6 +66,7 @@ public class PlayersController : ControllerBase
         return NoContent();
     }
 
+    // POST /players/reorder
     [HttpPost("reorder")]
     public async Task<ActionResult> ReorderPlayers(List<Player> players)
     {
@@ -81,6 +84,7 @@ public class PlayersController : ControllerBase
         return Ok();
     }
 
+    // POST /players/swap
     [HttpPost("swap")]
     public async Task<ActionResult<object>> SwapPlayers([FromBody] SwapRequest request)
     {
@@ -102,7 +106,7 @@ public class PlayersController : ControllerBase
         return Ok(new { player1, player2 });
     }
 
-    private bool PlayerExists(string id)
+    private bool PlayerExists(Guid id)
     {
         return _context.Players.Any(e => e.Id == id);
     }
@@ -110,6 +114,6 @@ public class PlayersController : ControllerBase
 
 public class SwapRequest
 {
-    public string Player1Id { get; set; } = string.Empty;
-    public string Player2Id { get; set; } = string.Empty;
+    public Guid Player1Id { get; set; }
+    public Guid Player2Id { get; set; }
 }
