@@ -133,7 +133,7 @@ export const useDepthChart = () => {
         .filter(p => p.position === newPosition)
         .sort((a, b) => a.order - b.order);
 
-      positionPlayers.forEach((p, index) => {
+      positionPlayers.forEach((p) => {
         if (p.id === playerId) {
           updates.push({ ...p, order: newOrder });
         } else if (oldOrder < newOrder) {

@@ -79,7 +79,7 @@ export const DepthChart = () => {
         const newIndex = positionPlayers.findIndex(p => p.id === overPlayer.id);
 
         if (oldIndex !== newIndex) {
-          const reordered = arrayMove(positionPlayers, oldIndex, newIndex);
+          arrayMove(positionPlayers, oldIndex, newIndex);
           
           try {
             await movePlayer(activePlayer.id, activePlayer.position, newIndex + 1);

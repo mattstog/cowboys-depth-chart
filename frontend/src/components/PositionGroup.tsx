@@ -5,7 +5,7 @@ import {
 } from '@dnd-kit/sortable';
 import { Player } from '../types/player';
 import { PlayerCard } from './PlayerCard';
-import { getPositionDisplayName } from '../utils/positions';
+// import { getPositionDisplayName } from '../utils/positions';
 
 interface PositionGroupProps {
   position: string;
