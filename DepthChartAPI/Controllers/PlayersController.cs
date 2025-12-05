@@ -63,7 +63,7 @@ public class PlayersController : ControllerBase
             }
         }
 
-        return NoContent();
+        return Ok(player); // ✅ now frontend .json() works
     }
 
     // POST /players/reorder
