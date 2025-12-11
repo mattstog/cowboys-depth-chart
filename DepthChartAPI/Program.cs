@@ -5,8 +5,8 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Railway provides PORT environment variable
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+// Railway provides PORT environment variable, default to 5210 for local
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5210";
 Console.WriteLine($"Starting server on port: {port}");
 
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");

@@ -116,7 +116,9 @@ const { players, loading, error, movePlayer, refetch } = useDepthChart();
 ### 3. Drag and Drop Implementation
 
 **Decision**: @dnd-kit with sortable and droppable patterns
+
 **Alternatives Considered**: react-beautiful-dnd, react-dnd
+
 **Rationale**:
 - Actively maintained (react-beautiful-dnd is deprecated)
 - Accessible by default (ARIA attributes)
